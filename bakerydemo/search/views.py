@@ -13,27 +13,16 @@ def search(request):
     # Search
     search_query = request.GET.get("q", None)
     if search_query:
-        if "elasticsearch" in settings.WAGTAILSEARCH_BACKENDS["default"]["BACKEND"]:
+        if (
+            "elasticsearch"
+            in settings.WAGTAILSEARCH_BACKENDS["default"]["BACKEND"]
+        ):
             # In production, use ElasticSearch and a simplified search query, per
             # https://docs.wagtail.org/en/stable/topics/search/backends.html
             # like this:
             search_results = Page.objects.live().search(search_query)
         else:
-            # If we aren't using ElasticSearch for the demo, fall back to native db search.
-            # But native DB search can't search specific fields in our models on a `Page` query.
-            # So for demo purposes ONLY, we hard-code in the model names we want to search.
-            blog_results = BlogPage.objects.live().search(search_query)
-            blog_page_ids = [p.page_ptr.id for p in blog_results]
-
-            bread_results = BreadPage.objects.live().search(search_query)
-            bread_page_ids = [p.page_ptr.id for p in bread_results]
-
-            location_results = LocationPage.objects.live().search(search_query)
-            location_result_ids = [p.page_ptr.id for p in location_results]
-
-            page_ids = blog_page_ids + bread_page_ids + location_result_ids
-            search_results = Page.objects.live().filter(id__in=page_ids)
-
+            search_results = _extracted_from_search_14(search_query)
         query = Query.get(search_query)
 
         # Record hit
@@ -60,3 +49,21 @@ def search(request):
             "search_results": search_results,
         },
     )
+
+
+# TODO Rename this here and in `search`
+def _extracted_from_search_14(search_query):
+    # If we aren't using ElasticSearch for the demo, fall back to native db search.
+    # But native DB search can't search specific fields in our models on a `Page` query.
+    # So for demo purposes ONLY, we hard-code in the model names we want to search.
+    blog_results = BlogPage.objects.live().search(search_query)
+    blog_page_ids = [p.page_ptr.id for p in blog_results]
+
+    bread_results = BreadPage.objects.live().search(search_query)
+    bread_page_ids = [p.page_ptr.id for p in bread_results]
+
+    location_results = LocationPage.objects.live().search(search_query)
+    location_result_ids = [p.page_ptr.id for p in location_results]
+
+    page_ids = blog_page_ids + bread_page_ids + location_result_ids
+    return Page.objects.live().filter(id__in=page_ids)
