@@ -36,7 +36,7 @@ Vous pouvez exécuter cette démonstration Wagtail en utilisant uv. Si uv n'est 
 
 ```bash
 cd ~/dev [ou votre répertoire dev préféré]
-git clone https://github.com/placepython/wagtail-backerydemo.git bakerydemo
+git clone https://github.com/TeamPlacePython/Wagtail_bakery_demo.git bakerydemo
 cd bakerydemo
 uv sync --extra dev
 ```
